@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <style>
     body {
-      width: 380px;
+      width: 420px;
       min-height: 200px;
       margin: 0;
       padding: 16px;
@@ -17,7 +17,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       padding-bottom: 12px;
       border-bottom: 1px solid #e0e0e0;
     }
@@ -33,6 +33,7 @@
       color: white;
       font-weight: bold;
       font-size: 12px;
+      flex-shrink: 0;
     }
 
     h1 {
@@ -42,6 +43,50 @@
       color: #333;
     }
 
+    /* Tab Switcher */
+    .tab-switcher {
+      display: flex;
+      margin-bottom: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: #f8f9fa;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tab-btn:first-child {
+      border-right: 1px solid #e0e0e0;
+    }
+
+    .tab-btn.active {
+      background: #397dea;
+      color: white;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: #eef1f5;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Existing visibility styles */
     .score-container {
       text-align: center;
       margin-bottom: 20px;
@@ -154,7 +199,280 @@
       box-shadow: 0 4px 12px rgba(57, 125, 234, 0.3);
     }
 
+    /* Shadow Query Styles */
+    .sq-loading {
+      text-align: center;
+      padding: 30px 0;
+      color: #666;
+    }
 
+    .sq-message {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .sq-message .sq-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .sq-analyze-btn {
+      background: #00AA00;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 12px;
+      transition: all 0.3s;
+    }
+
+    .sq-analyze-btn:hover {
+      background: #009900;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 170, 0, 0.3);
+    }
+
+    .sq-analyze-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .sq-prompt-group {
+      margin-bottom: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .sq-prompt-header {
+      background: #f0f4ff;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .sq-prompt-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    .sq-prompt-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .sq-queries-list {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .sq-query-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+    }
+
+    .sq-query-item:last-child {
+      border-bottom: none;
+    }
+
+    .sq-query-text {
+      flex: 1;
+      color: #333;
+      padding-right: 8px;
+    }
+
+    .sq-query-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .sq-query-badge.hidden {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .sq-query-badge.visible {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .sq-copy-btn {
+      background: none;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 10px;
+      color: #666;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .sq-copy-btn:hover {
+      background: #f0f0f0;
+      border-color: #999;
+    }
+
+    .sq-copy-btn.copied {
+      background: #d4edda;
+      border-color: #00AA00;
+      color: #155724;
+    }
+
+    .sq-citations {
+      padding: 8px 12px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .sq-citations-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .sq-citation-item {
+      font-size: 11px;
+      color: #397dea;
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sq-citation-item a {
+      color: #397dea;
+      text-decoration: none;
+    }
+
+    .sq-citation-item a:hover {
+      text-decoration: underline;
+    }
+
+    .sq-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .sq-action-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .sq-action-btn:hover {
+      background: #f8f9fa;
+      border-color: #999;
+    }
+
+    .sq-action-btn.copied {
+      background: #d4edda;
+      border-color: #00AA00;
+      color: #155724;
+    }
+
+    .sq-divider {
+      border: none;
+      border-top: 1px solid #e0e0e0;
+      margin: 16px 0;
+    }
+
+    .sq-cta {
+      text-align: center;
+      padding: 12px;
+      background: linear-gradient(135deg, #f0f4ff, #e8f5e8);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .sq-cta-text {
+      font-size: 12px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .sq-cta-btn {
+      display: inline-block;
+      background: #397dea;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .sq-cta-btn:hover {
+      background: #2968d7;
+      transform: translateY(-1px);
+    }
+
+    .sq-stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 12px;
+      padding: 8px 0;
+    }
+
+    .sq-stat {
+      text-align: center;
+    }
+
+    .sq-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #397dea;
+    }
+
+    .sq-stat-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+    }
+
+    .sq-error {
+      text-align: center;
+      padding: 20px;
+      color: #856404;
+      background: #fff3cd;
+      border-radius: 8px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -163,63 +481,125 @@
     <h1>AI Search Visibility Checker</h1>
   </div>
 
-  <div id="loading" class="loading">
-    <div>Analyzing page...</div>
+  <!-- Tab Switcher -->
+  <div class="tab-switcher">
+    <button class="tab-btn active" data-tab="visibility">AI Visibility</button>
+    <button class="tab-btn" data-tab="shadow-queries">Shadow Q's</button>
   </div>
+
+  <!-- AI Visibility Tab (existing) -->
+  <div id="tab-visibility" class="tab-content active">
+    <div id="loading" class="loading">
+      <div>Analyzing page...</div>
+    </div>
 
     <div id="results" style="display: none;">
-    <div class="score-container">
-      <div class="score-label">AI Search Score</div>
-      <div id="score" class="score">--</div>
-      <div id="score-description" class="score-description"></div>
-    </div>
-
-    <div id="roi-section" class="roi-section" style="margin-bottom: 20px;">
-      <div class="industry-detection" style="text-align: center; margin-bottom: 12px;">
-        <span style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Detected Industry: </span>
-        <span id="detected-industry" style="font-size: 12px; font-weight: 600; color: #397dea;"></span>
+      <div class="score-container">
+        <div class="score-label">AI Search Score</div>
+        <div id="score" class="score">--</div>
+        <div id="score-description" class="score-description"></div>
       </div>
-      
-      <div class="roi-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-        <div class="roi-card monthly" style="background: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #ef4444;">
-          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #991b1b; margin-bottom: 4px;">Monthly Loss</div>
-          <div id="monthly-loss" style="font-size: 18px; font-weight: 700; color: #dc2626;">$0</div>
-          <div style="font-size: 9px; color: #7f1d1d;">from poor AI search visibility</div>
+
+      <div id="roi-section" class="roi-section" style="margin-bottom: 20px;">
+        <div class="industry-detection" style="text-align: center; margin-bottom: 12px;">
+          <span style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Detected Industry: </span>
+          <span id="detected-industry" style="font-size: 12px; font-weight: 600; color: #397dea;"></span>
         </div>
-        
-        <div class="roi-card annual" style="background: #f0f9ff; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #0ea5e9;">
-          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #0c4a6e; margin-bottom: 4px;">Annual Loss</div>
-          <div id="annual-loss" style="font-size: 18px; font-weight: 700; color: #0284c7;">$0</div>
-          <div style="font-size: 9px; color: #0c4a6e;">potential impact</div>
+
+        <div class="roi-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="roi-card monthly" style="background: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #ef4444;">
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #991b1b; margin-bottom: 4px;">Monthly Loss</div>
+            <div id="monthly-loss" style="font-size: 18px; font-weight: 700; color: #dc2626;">$0</div>
+            <div style="font-size: 9px; color: #7f1d1d;">from poor AI search visibility</div>
+          </div>
+
+          <div class="roi-card annual" style="background: #f0f9ff; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #0ea5e9;">
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #0c4a6e; margin-bottom: 4px;">Annual Loss</div>
+            <div id="annual-loss" style="font-size: 18px; font-weight: 700; color: #0284c7;">$0</div>
+            <div style="font-size: 9px; color: #0c4a6e;">potential impact</div>
+          </div>
+        </div>
+
+        <div class="roi-disclaimer" style="text-align: center; margin-bottom: 8px;">
+          <div style="font-size: 10px; color: #666; margin-bottom: 8px;">*Estimated based on industry averages</div>
         </div>
       </div>
-      
-      <div class="roi-disclaimer" style="text-align: center; margin-bottom: 8px;">
-        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">*Estimated based on industry averages</div>
+
+      <div id="issues-section" class="issues-section" style="display: none;">
+        <div class="section-title">Issues Found</div>
+        <div id="issues-list"></div>
       </div>
-    </div>
 
-    <div id="issues-section" class="issues-section" style="display: none;">
-      <div class="section-title">Issues Found</div>
-      <div id="issues-list"></div>
-    </div>
+      <div id="recommendations-section" class="recommendations" style="display: none;">
+        <div class="section-title">Recommendations</div>
+        <div id="recommendations-list"></div>
+      </div>
 
-    <div id="recommendations-section" class="recommendations" style="display: none;">
-      <div class="section-title">Recommendations</div>
-      <div id="recommendations-list"></div>
+      <!-- Primary CTA Button -->
+      <a href="https://www.alliai.com/ai-search-impact-calculator" target="_blank" style="text-decoration: none;">
+        <button id="primary-cta-btn" class="primary-cta-btn">
+          Get Precise ROI Calculation →
+        </button>
+      </a>
     </div>
-
-    <!-- Primary CTA Button -->
-    <a href="https://www.alliai.com/ai-search-impact-calculator" target="_blank" style="text-decoration: none;">
-      <button id="primary-cta-btn" class="primary-cta-btn">
-        Get Precise ROI Calculation →
-      </button>
-    </a>
   </div>
 
+  <!-- Shadow Queries Tab (new) -->
+  <div id="tab-shadow-queries" class="tab-content">
+    <div id="sq-content">
+      <!-- Default state: prompt to analyze -->
+      <div id="sq-initial" class="sq-message">
+        <div class="sq-icon">&#x1F50D;</div>
+        <div>Reveal the hidden search queries ChatGPT generates behind the scenes.</div>
+        <button id="sq-analyze-btn" class="sq-analyze-btn">Analyze Shadow Queries</button>
+      </div>
+
+      <!-- Loading state -->
+      <div id="sq-loading" class="sq-loading" style="display: none;">
+        <div>Extracting shadow queries...</div>
+      </div>
+
+      <!-- Results -->
+      <div id="sq-results" style="display: none;">
+        <div class="sq-stats">
+          <div class="sq-stat">
+            <div id="sq-total-queries" class="sq-stat-value">0</div>
+            <div class="sq-stat-label">Shadow Queries</div>
+          </div>
+          <div class="sq-stat">
+            <div id="sq-total-citations" class="sq-stat-value">0</div>
+            <div class="sq-stat-label">Sources Cited</div>
+          </div>
+        </div>
+
+        <div id="sq-results-list"></div>
+
+        <div class="sq-actions">
+          <button id="sq-copy-all-btn" class="sq-action-btn">Copy All Queries</button>
+          <button id="sq-export-csv-btn" class="sq-action-btn">Export CSV</button>
+        </div>
+
+        <hr class="sq-divider">
+
+        <div class="sq-cta">
+          <div class="sq-cta-text">Want to rank for these shadow queries?</div>
+          <a id="sq-cta-link" href="https://www.alliai.com/ai-search-visibility-engine" target="_blank" class="sq-cta-btn">
+            See How Alli AI Can Help →
+          </a>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="sq-error" class="sq-error" style="display: none;"></div>
+
+      <!-- Not on ChatGPT message -->
+      <div id="sq-not-chatgpt" class="sq-message" style="display: none;">
+        <div class="sq-icon">&#x1F4AC;</div>
+        <div>Navigate to a ChatGPT conversation with web search results, then open this extension to analyze shadow queries.</div>
+      </div>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
 </html>
-
-
