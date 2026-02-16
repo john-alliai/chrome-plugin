@@ -4,6 +4,7 @@
 class AnalysisManager {
   constructor() {
     this.analysisResults = new Map(); // Store results by tab ID
+    this.shadowQueryResults = new Map(); // Store shadow queries by tab ID
     this.setupMessageHandlers();
   }
 
@@ -16,6 +17,19 @@ class AnalysisManager {
       } else if (message.type === 'GET_ANALYSIS') {
         const results = this.analysisResults.get(message.tabId);
         sendResponse({ results });
+      } else if (message.type === 'SHADOW_QUERIES_COMPLETE') {
+        const tabId = sender.tab?.id || message.tabId;
+        if (tabId) {
+          this.shadowQueryResults.set(tabId, {
+            ...message.data,
+            timestamp: Date.now()
+          });
+          this.updateBadge(tabId);
+        }
+        sendResponse({ success: true });
+      } else if (message.type === 'GET_SHADOW_QUERIES') {
+        const sqResults = this.shadowQueryResults.get(message.tabId);
+        sendResponse({ results: sqResults });
       }
       return true; // Keep message channel open for async response
     });
@@ -30,6 +44,7 @@ class AnalysisManager {
     // Clear analysis when tab is closed
     chrome.tabs.onRemoved.addListener((tabId) => {
       this.analysisResults.delete(tabId);
+      this.shadowQueryResults.delete(tabId);
     });
   }
 
@@ -45,6 +60,27 @@ class AnalysisManager {
   }
 
   updateBadge(tabId) {
+    // Check if this tab has shadow query results (ChatGPT tab)
+    const sqResults = this.shadowQueryResults.get(tabId);
+    if (sqResults) {
+      const count = sqResults.totalShadowQueries || 0;
+      chrome.action.setBadgeText({
+        text: count > 0 ? 'SQ' : '',
+        tabId: tabId
+      });
+      chrome.action.setBadgeBackgroundColor({
+        color: '#00AA00', // Alli green
+        tabId: tabId
+      });
+      chrome.action.setTitle({
+        title: count > 0
+          ? `Shadow Queries: ${count} found`
+          : 'Shadow Query Analyzer',
+        tabId: tabId
+      });
+      return;
+    }
+
     const results = this.analysisResults.get(tabId);
     if (!results) return;
 

@@ -1,8 +1,9 @@
 // AI Search Visibility Checker - Popup Script
-// Handles the popup UI and displays analysis results
+// Handles the popup UI: AI Visibility view and Shadow Query Analyzer view
 
 class PopupManager {
   constructor() {
+    // Visibility tab elements
     this.loadingEl = document.getElementById('loading');
     this.resultsEl = document.getElementById('results');
     this.scoreEl = document.getElementById('score');
@@ -12,12 +13,38 @@ class PopupManager {
     this.recsSectionEl = document.getElementById('recommendations-section');
     this.recsListEl = document.getElementById('recommendations-list');
     this.primaryCtaBtn = document.getElementById('primary-cta-btn');
-    
+
     // ROI elements
     this.roiSectionEl = document.getElementById('roi-section');
     this.detectedIndustryEl = document.getElementById('detected-industry');
     this.monthlyLossEl = document.getElementById('monthly-loss');
     this.annualLossEl = document.getElementById('annual-loss');
+
+    // Shadow query elements
+    this.sqInitialEl = document.getElementById('sq-initial');
+    this.sqLoadingEl = document.getElementById('sq-loading');
+    this.sqResultsEl = document.getElementById('sq-results');
+    this.sqResultsListEl = document.getElementById('sq-results-list');
+    this.sqErrorEl = document.getElementById('sq-error');
+    this.sqNotChatGPTEl = document.getElementById('sq-not-chatgpt');
+    this.sqAnalyzeBtn = document.getElementById('sq-analyze-btn');
+    this.sqCopyAllBtn = document.getElementById('sq-copy-all-btn');
+    this.sqExportCsvBtn = document.getElementById('sq-export-csv-btn');
+    this.sqTotalQueriesEl = document.getElementById('sq-total-queries');
+    this.sqTotalCitationsEl = document.getElementById('sq-total-citations');
+
+    // Tab elements
+    this.tabBtns = document.querySelectorAll('.tab-btn');
+    this.tabContents = {
+      'visibility': document.getElementById('tab-visibility'),
+      'shadow-queries': document.getElementById('tab-shadow-queries')
+    };
+
+    // State
+    this.currentTab = null;
+    this.currentTabId = null;
+    this.isChatGPT = false;
+    this.shadowQueryData = null;
 
     this.init();
   }
@@ -25,22 +52,70 @@ class PopupManager {
   async init() {
     // Get current tab
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    this.currentTab = tabs[0];
     this.currentTabId = tabs[0].id;
 
-    // Setup primary CTA button with ROI data
-    this.primaryCtaBtn.addEventListener('click', (e) => this.handlePrimaryCTA(e));
+    // Detect if on ChatGPT
+    this.isChatGPT = this.currentTab.url?.includes('chatgpt.com');
 
-    // Load existing results or wait for analysis
-    this.loadResults();
+    // Setup tab switcher
+    this.setupTabSwitcher();
+
+    // Setup button handlers
+    this.primaryCtaBtn.addEventListener('click', (e) => this.handlePrimaryCTA(e));
+    this.sqAnalyzeBtn.addEventListener('click', () => this.triggerShadowAnalysis());
+    this.sqCopyAllBtn.addEventListener('click', () => this.handleCopyAll());
+    this.sqExportCsvBtn.addEventListener('click', () => this.handleExportCSV());
+
+    // Show appropriate default tab
+    if (this.isChatGPT) {
+      this.switchTab('shadow-queries');
+      this.initShadowQueryView();
+    } else {
+      this.switchTab('visibility');
+      this.loadResults();
+    }
   }
 
+  // --- Tab Switching ---
+
+  setupTabSwitcher() {
+    this.tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        this.switchTab(tabName);
+
+        // Lazy-load content for the tab if needed
+        if (tabName === 'visibility' && !this.visibilityLoaded) {
+          this.loadResults();
+        } else if (tabName === 'shadow-queries' && !this.sqViewInitialized) {
+          this.initShadowQueryView();
+        }
+      });
+    });
+  }
+
+  switchTab(tabName) {
+    // Update button states
+    this.tabBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+
+    // Update content visibility
+    for (const [name, el] of Object.entries(this.tabContents)) {
+      el.classList.toggle('active', name === tabName);
+    }
+  }
+
+  // --- AI Visibility View (existing logic) ---
+
   async loadResults() {
-    // Initialize retry counter if not exists
+    this.visibilityLoaded = true;
+
     if (!this.retryCount) {
       this.retryCount = 0;
     }
 
-    // Request analysis results from background script
     const response = await chrome.runtime.sendMessage({
       type: 'GET_ANALYSIS',
       tabId: this.currentTabId
@@ -50,22 +125,18 @@ class PopupManager {
       this.displayResults(response.results);
     } else {
       this.retryCount++;
-      
-      // If we've been waiting too long, trigger a new analysis
-      if (this.retryCount >= 10) { // 5 seconds of waiting
-        console.log('No analysis results found, triggering new analysis...');
+
+      if (this.retryCount >= 10) {
         await this.triggerNewAnalysis();
-        this.retryCount = 0; // Reset counter
+        this.retryCount = 0;
       }
-      
-      // Continue checking for results
+
       setTimeout(() => this.loadResults(), 500);
     }
   }
 
   async triggerNewAnalysis() {
     try {
-      // Reset the loaded flag and trigger new analysis
       await chrome.scripting.executeScript({
         target: { tabId: this.currentTabId },
         func: () => { window.aiSearchVisibilityCheckerLoaded = false; }
@@ -77,7 +148,6 @@ class PopupManager {
       });
     } catch (error) {
       console.error('Failed to trigger new analysis:', error);
-      // Show error state or fallback
       this.showErrorState();
     }
   }
@@ -97,22 +167,18 @@ class PopupManager {
     this.loadingEl.style.display = 'none';
     this.resultsEl.style.display = 'block';
 
-    // Display score
     this.scoreEl.textContent = results.score;
     this.updateScoreAppearance(results.score);
 
-    // Display ROI information
     if (results.roi) {
       this.displayROIResults(results.roi);
     }
 
-    // Display issues
     if (results.issues && results.issues.length > 0) {
       this.issuesSectionEl.style.display = 'block';
       this.renderIssues(results.issues);
     }
 
-    // Display recommendations
     if (results.recommendations && results.recommendations.length > 0) {
       this.recsSectionEl.style.display = 'block';
       this.renderRecommendations(results.recommendations);
@@ -120,7 +186,6 @@ class PopupManager {
   }
 
   updateScoreAppearance(score) {
-    // Remove existing classes
     this.scoreEl.classList.remove('good', 'warning', 'poor');
 
     let description = '';
@@ -140,42 +205,36 @@ class PopupManager {
 
   renderIssues(issues) {
     this.issuesListEl.innerHTML = '';
-    
+
     issues.forEach(issue => {
       const issueEl = document.createElement('div');
       issueEl.className = `issue ${issue.severity}`;
-      
       issueEl.innerHTML = `
-        <div class="issue-message">${issue.message}</div>
-        <div class="issue-impact">${issue.impact}</div>
+        <div class="issue-message">${this.escapeHtml(issue.message)}</div>
+        <div class="issue-impact">${this.escapeHtml(issue.impact)}</div>
       `;
-      
       this.issuesListEl.appendChild(issueEl);
     });
   }
 
   renderRecommendations(recommendations) {
     this.recsListEl.innerHTML = '';
-    
+
     recommendations.forEach(rec => {
       const recEl = document.createElement('div');
       recEl.className = 'recommendation';
-      
       recEl.innerHTML = `
-        <div class="rec-action">${rec.action}</div>
-        <div class="rec-description">${rec.description}</div>
+        <div class="rec-action">${this.escapeHtml(rec.action)}</div>
+        <div class="rec-description">${this.escapeHtml(rec.description)}</div>
       `;
-      
       this.recsListEl.appendChild(recEl);
     });
   }
 
-
   displayROIResults(roi) {
-    // Format industry name
     const industryDisplayNames = {
       'travel': 'Travel & Hospitality',
-      'finance': 'Finance & Insurance', 
+      'finance': 'Finance & Insurance',
       'health': 'Healthcare & Wellness',
       'ecommerce': 'E-commerce & Retail',
       'saas': 'B2B SaaS',
@@ -183,25 +242,19 @@ class PopupManager {
       'agency': 'Agency & Marketing',
       'local': 'Local Services'
     };
-    
+
     this.detectedIndustryEl.textContent = industryDisplayNames[roi.industry] || 'General Business';
-    
-    // Display losses with proper formatting
     this.monthlyLossEl.textContent = `$${Math.round(roi.estimatedMonthlyLoss).toLocaleString()}`;
     this.annualLossEl.textContent = `$${Math.round(roi.estimatedAnnualLoss).toLocaleString()}`;
-    
-    // Store ROI data for enhanced calculation
     this.currentROI = roi;
   }
 
   async handlePrimaryCTA(e) {
     e.preventDefault();
-    
-    // Get current tab URL for tracking
+
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     const currentUrl = tabs[0].url;
-    
-    // Extract clean domain from URL
+
     let domain = 'unknown';
     try {
       const urlObj = new URL(currentUrl);
@@ -209,14 +262,282 @@ class PopupManager {
     } catch (error) {
       console.log('Could not parse URL:', currentUrl);
     }
-    
+
     const params = new URLSearchParams({
       source: 'extension',
       website: domain
     });
-    
+
     const url = `https://www.alliai.com/ai-search-impact-calculator?${params.toString()}`;
     chrome.tabs.create({ url });
+  }
+
+  // --- Shadow Query View ---
+
+  async initShadowQueryView() {
+    this.sqViewInitialized = true;
+
+    if (!this.isChatGPT) {
+      // Not on ChatGPT — show instruction message
+      this.sqInitialEl.style.display = 'none';
+      this.sqNotChatGPTEl.style.display = 'block';
+      return;
+    }
+
+    // Check for cached results from background
+    const response = await chrome.runtime.sendMessage({
+      type: 'GET_SHADOW_QUERIES',
+      tabId: this.currentTabId
+    });
+
+    if (response.results) {
+      this.displayShadowQueries(response.results);
+    }
+    // Otherwise, show the default "Analyze" button state
+  }
+
+  async triggerShadowAnalysis() {
+    // Show loading state
+    this.sqInitialEl.style.display = 'none';
+    this.sqErrorEl.style.display = 'none';
+    this.sqResultsEl.style.display = 'none';
+    this.sqLoadingEl.style.display = 'block';
+    this.sqAnalyzeBtn.disabled = true;
+
+    try {
+      // Send message to chatgpt-content.js to extract shadow queries
+      const response = await chrome.tabs.sendMessage(this.currentTabId, {
+        type: 'EXTRACT_SHADOW_QUERIES'
+      });
+
+      this.sqLoadingEl.style.display = 'none';
+
+      if (response.success && response.data) {
+        this.displayShadowQueries(response.data);
+      } else if (response.success && response.error === 'NO_SEARCH_QUERIES') {
+        this.showSQMessage(response.message);
+      } else {
+        this.showSQError(response.message || 'Failed to extract shadow queries.');
+      }
+    } catch (error) {
+      this.sqLoadingEl.style.display = 'none';
+      this.showSQError('Could not connect to ChatGPT page. Try refreshing the page.');
+    }
+
+    this.sqAnalyzeBtn.disabled = false;
+  }
+
+  displayShadowQueries(data) {
+    this.shadowQueryData = data;
+
+    // Hide other states
+    this.sqInitialEl.style.display = 'none';
+    this.sqLoadingEl.style.display = 'none';
+    this.sqErrorEl.style.display = 'none';
+    this.sqNotChatGPTEl.style.display = 'none';
+
+    // Update stats
+    this.sqTotalQueriesEl.textContent = data.totalShadowQueries || 0;
+    this.sqTotalCitationsEl.textContent = data.totalCitations || 0;
+
+    // Render results
+    this.sqResultsListEl.innerHTML = '';
+
+    if (data.results && data.results.length > 0) {
+      data.results.forEach(result => {
+        const groupEl = this.createPromptGroup(result);
+        this.sqResultsListEl.appendChild(groupEl);
+      });
+    }
+
+    this.sqResultsEl.style.display = 'block';
+  }
+
+  createPromptGroup(result) {
+    const group = document.createElement('div');
+    group.className = 'sq-prompt-group';
+
+    // Prompt header
+    const header = document.createElement('div');
+    header.className = 'sq-prompt-header';
+    header.innerHTML = `
+      <div class="sq-prompt-label">User Prompt</div>
+      <div class="sq-prompt-text">${this.escapeHtml(result.userPrompt)}</div>
+    `;
+    group.appendChild(header);
+
+    // Shadow queries list
+    if (result.shadowQueries && result.shadowQueries.length > 0) {
+      const list = document.createElement('ul');
+      list.className = 'sq-queries-list';
+
+      result.shadowQueries.forEach(query => {
+        const item = document.createElement('li');
+        item.className = 'sq-query-item';
+
+        const badgeClass = query.hidden ? 'hidden' : 'visible';
+        const badgeText = query.hidden ? 'Shadow' : 'Visible';
+
+        item.innerHTML = `
+          <span class="sq-query-badge ${badgeClass}">${badgeText}</span>
+          <span class="sq-query-text">${this.escapeHtml(query.text)}</span>
+          <button class="sq-copy-btn" data-query="${this.escapeAttr(query.text)}">Copy</button>
+        `;
+
+        // Copy button handler
+        const copyBtn = item.querySelector('.sq-copy-btn');
+        copyBtn.addEventListener('click', () => this.handleCopySingle(copyBtn));
+
+        list.appendChild(item);
+      });
+
+      group.appendChild(list);
+    }
+
+    // Citations
+    if (result.citations && result.citations.length > 0) {
+      const citationsEl = document.createElement('div');
+      citationsEl.className = 'sq-citations';
+      citationsEl.innerHTML = `<div class="sq-citations-title">Sources Cited (${result.citations.length})</div>`;
+
+      result.citations.forEach(citation => {
+        const citEl = document.createElement('div');
+        citEl.className = 'sq-citation-item';
+        if (citation.url) {
+          const a = document.createElement('a');
+          a.href = citation.url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = `${citation.refIndex}. ${citation.title || citation.url}`;
+          citEl.appendChild(a);
+        } else {
+          citEl.textContent = `${citation.refIndex}. ${citation.title}`;
+        }
+        citationsEl.appendChild(citEl);
+      });
+
+      group.appendChild(citationsEl);
+    }
+
+    return group;
+  }
+
+  // --- Copy & Export ---
+
+  handleCopySingle(btn) {
+    const queryText = btn.dataset.query;
+    navigator.clipboard.writeText(queryText).then(() => {
+      btn.textContent = 'Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  handleCopyAll() {
+    if (!this.shadowQueryData || !this.shadowQueryData.results) return;
+
+    const allQueries = [];
+    this.shadowQueryData.results.forEach(result => {
+      result.shadowQueries.forEach(q => {
+        allQueries.push(q.text);
+      });
+    });
+
+    const text = allQueries.join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      this.sqCopyAllBtn.textContent = 'Copied!';
+      this.sqCopyAllBtn.classList.add('copied');
+      setTimeout(() => {
+        this.sqCopyAllBtn.textContent = 'Copy All Queries';
+        this.sqCopyAllBtn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+
+  handleExportCSV() {
+    if (!this.shadowQueryData || !this.shadowQueryData.results) return;
+
+    const rows = [
+      ['Generated by Alli AI Shadow Query Analyzer — alliai.com'],
+      [],
+      ['User Prompt', 'Shadow Query', 'Type', 'Source URL', 'Source Title']
+    ];
+
+    this.shadowQueryData.results.forEach(result => {
+      result.shadowQueries.forEach(q => {
+        rows.push([
+          result.userPrompt,
+          q.text,
+          q.hidden ? 'Shadow (Hidden)' : 'Visible',
+          '',
+          ''
+        ]);
+      });
+
+      if (result.citations) {
+        result.citations.forEach(c => {
+          rows.push([
+            result.userPrompt,
+            '',
+            'Citation',
+            c.url || '',
+            c.title || ''
+          ]);
+        });
+      }
+    });
+
+    // Build CSV string
+    const csvContent = rows.map(row =>
+      row.map(cell => {
+        const escaped = String(cell).replace(/"/g, '""');
+        return `"${escaped}"`;
+      }).join(',')
+    ).join('\n');
+
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `shadow-queries-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Helpers ---
+
+  showSQMessage(message) {
+    this.sqInitialEl.style.display = 'none';
+    this.sqLoadingEl.style.display = 'none';
+    this.sqResultsEl.style.display = 'none';
+    this.sqErrorEl.style.display = 'block';
+    this.sqErrorEl.textContent = message;
+    this.sqErrorEl.style.background = '#f0f4ff';
+    this.sqErrorEl.style.color = '#333';
+  }
+
+  showSQError(message) {
+    this.sqInitialEl.style.display = 'none';
+    this.sqLoadingEl.style.display = 'none';
+    this.sqResultsEl.style.display = 'none';
+    this.sqErrorEl.style.display = 'block';
+    this.sqErrorEl.textContent = message;
+    this.sqErrorEl.style.background = '#fff3cd';
+    this.sqErrorEl.style.color = '#856404';
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  escapeAttr(text) {
+    return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 }
 
