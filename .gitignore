@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+._*
+__MACOSX/
+
+# IDE
+.vscode/
+.idea/
+
+# Chrome extension build artifacts
+*.crx
+*.pem
+*.zip

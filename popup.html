@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 380px;
+      min-height: 200px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .logo {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .score-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .score {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .score.good { color: #00AA00; }
+    .score.warning { color: #FFA500; }
+    .score.poor { color: #FF0000; }
+
+    .score-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .score-description {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .issues-section {
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .issue {
+      background: #f8f9fa;
+      border-left: 3px solid #ddd;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+    }
+
+    .issue.high { border-left-color: #FF0000; }
+    .issue.medium { border-left-color: #FFA500; }
+    .issue.low { border-left-color: #FFD700; }
+
+    .issue-message {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .issue-impact {
+      color: #666;
+      font-size: 11px;
+    }
+
+    .recommendations {
+      margin-top: 16px;
+    }
+
+    .recommendation {
+      background: #e8f5e8;
+      border-left: 3px solid #00AA00;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+    }
+
+    .rec-action {
+      font-weight: 500;
+      margin-bottom: 2px;
+      color: #006600;
+    }
+
+    .rec-description {
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 0;
+      color: #666;
+    }
+
+    .primary-cta-btn {
+      background: #397dea;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 16px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+
+    .primary-cta-btn:hover {
+      background: #2968d7;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(57, 125, 234, 0.3);
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">AI</div>
+    <h1>AI Search Visibility Checker</h1>
+  </div>
+
+  <div id="loading" class="loading">
+    <div>Analyzing page...</div>
+  </div>
+
+    <div id="results" style="display: none;">
+    <div class="score-container">
+      <div class="score-label">AI Search Score</div>
+      <div id="score" class="score">--</div>
+      <div id="score-description" class="score-description"></div>
+    </div>
+
+    <div id="roi-section" class="roi-section" style="margin-bottom: 20px;">
+      <div class="industry-detection" style="text-align: center; margin-bottom: 12px;">
+        <span style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Detected Industry: </span>
+        <span id="detected-industry" style="font-size: 12px; font-weight: 600; color: #397dea;"></span>
+      </div>
+      
+      <div class="roi-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div class="roi-card monthly" style="background: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #ef4444;">
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #991b1b; margin-bottom: 4px;">Monthly Loss</div>
+          <div id="monthly-loss" style="font-size: 18px; font-weight: 700; color: #dc2626;">$0</div>
+          <div style="font-size: 9px; color: #7f1d1d;">from poor AI search visibility</div>
+        </div>
+        
+        <div class="roi-card annual" style="background: #f0f9ff; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #0ea5e9;">
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #0c4a6e; margin-bottom: 4px;">Annual Loss</div>
+          <div id="annual-loss" style="font-size: 18px; font-weight: 700; color: #0284c7;">$0</div>
+          <div style="font-size: 9px; color: #0c4a6e;">potential impact</div>
+        </div>
+      </div>
+      
+      <div class="roi-disclaimer" style="text-align: center; margin-bottom: 8px;">
+        <div style="font-size: 10px; color: #666; margin-bottom: 8px;">*Estimated based on industry averages</div>
+      </div>
+    </div>
+
+    <div id="issues-section" class="issues-section" style="display: none;">
+      <div class="section-title">Issues Found</div>
+      <div id="issues-list"></div>
+    </div>
+
+    <div id="recommendations-section" class="recommendations" style="display: none;">
+      <div class="section-title">Recommendations</div>
+      <div id="recommendations-list"></div>
+    </div>
+
+    <!-- Primary CTA Button -->
+    <a href="https://www.alliai.com/ai-search-impact-calculator" target="_blank" style="text-decoration: none;">
+      <button id="primary-cta-btn" class="primary-cta-btn">
+        Get Precise ROI Calculation →
+      </button>
+    </a>
+  </div>
+
+
+  <script src="popup.js"></script>
+</body>
+</html>
+
+
