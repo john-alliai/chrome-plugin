@@ -34,8 +34,25 @@ class AnalysisManager {
       return true; // Keep message channel open for async response
     });
 
-    // Update badge when analysis completes
+    // Update badge when analysis completes, and clear stale shadow query cache
+    // when a ChatGPT tab navigates to a different conversation
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      // Clear shadow query cache when URL changes on a ChatGPT tab
+      if (changeInfo.url && changeInfo.url.includes('chatgpt.com')) {
+        const cached = this.shadowQueryResults.get(tabId);
+        if (cached) {
+          // Extract conversation ID from new URL
+          const newConvMatch = changeInfo.url.match(/\/(?:c|g)\/([a-f0-9-]+)/);
+          const newConvId = newConvMatch ? newConvMatch[1] : null;
+          // If conversation changed (or no longer on a conversation), clear cache
+          if (cached.conversationId !== newConvId) {
+            this.shadowQueryResults.delete(tabId);
+            // Reset badge
+            chrome.action.setBadgeText({ text: '', tabId });
+          }
+        }
+      }
+
       if (changeInfo.status === 'complete' && tab.url) {
         this.updateBadge(tabId);
       }

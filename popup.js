@@ -284,13 +284,18 @@ class PopupManager {
       return;
     }
 
-    // Check for cached results from background
+    // Extract current conversation ID from the tab URL
+    const convMatch = this.currentTab.url?.match(/\/(?:c|g)\/([a-f0-9-]+)/);
+    this.currentConversationId = convMatch ? convMatch[1] : null;
+
+    // Check for cached results from background, but only use them
+    // if they match the current conversation
     const response = await chrome.runtime.sendMessage({
       type: 'GET_SHADOW_QUERIES',
       tabId: this.currentTabId
     });
 
-    if (response.results) {
+    if (response.results && response.results.conversationId === this.currentConversationId) {
       this.displayShadowQueries(response.results);
     }
     // Otherwise, show the default "Analyze" button state
