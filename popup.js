@@ -312,10 +312,34 @@ class PopupManager {
 
       this.sqLoadingEl.style.display = 'none';
 
-      if (response.success && response.data) {
+      if (response.success && response.data && response.data.totalShadowQueries > 0) {
         this.displayShadowQueries(response.data);
-      } else if (response.success && response.error === 'NO_SEARCH_QUERIES') {
-        this.showSQMessage(response.message);
+      } else if (response.success && response.data) {
+        // Got data but 0 queries — show debug info to help diagnose
+        const debug = response.data.debug;
+        let debugText = response.message ||
+          "This conversation didn't trigger web searches. Try a query that would require current information.";
+        if (debug && debug.messages) {
+          const searchMsgs = debug.messages.filter(m =>
+            m.hasSearchModelQueries || m.hasSearchQueries ||
+            m.hasContentReferences || m.hasSearchResultGroups ||
+            m.hasCiteMetadata ||
+            (m.role === 'tool') ||
+            (m.authorName && m.authorName !== '')
+          );
+          if (searchMsgs.length > 0) {
+            debugText += '\n\nDebug — messages with search-related fields:\n' +
+              JSON.stringify(searchMsgs, null, 2);
+          } else {
+            debugText += `\n\nDebug — ${debug.totalMessages} messages found, none with search metadata.`;
+            // Show all message summaries for diagnosis
+            const roleSummary = debug.messages.map(m =>
+              `${m.role}${m.authorName ? '/' + m.authorName : ''} [${m.contentType}] meta:[${m.metadataKeys.join(',')}]`
+            );
+            debugText += '\nAll messages:\n' + roleSummary.join('\n');
+          }
+        }
+        this.showSQDebug(debugText);
       } else {
         this.showSQError(response.message || 'Failed to extract shadow queries.');
       }
@@ -509,6 +533,22 @@ class PopupManager {
   }
 
   // --- Helpers ---
+
+  showSQDebug(message) {
+    this.sqInitialEl.style.display = 'none';
+    this.sqLoadingEl.style.display = 'none';
+    this.sqResultsEl.style.display = 'none';
+    this.sqNotChatGPTEl.style.display = 'none';
+    this.sqErrorEl.style.display = 'block';
+    this.sqErrorEl.style.background = '#f0f4ff';
+    this.sqErrorEl.style.color = '#333';
+    this.sqErrorEl.style.textAlign = 'left';
+    this.sqErrorEl.style.whiteSpace = 'pre-wrap';
+    this.sqErrorEl.style.fontSize = '11px';
+    this.sqErrorEl.style.maxHeight = '400px';
+    this.sqErrorEl.style.overflowY = 'auto';
+    this.sqErrorEl.textContent = message;
+  }
 
   showSQMessage(message) {
     this.sqInitialEl.style.display = 'none';
