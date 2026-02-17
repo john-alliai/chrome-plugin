@@ -65,7 +65,7 @@ class AnalysisManager {
     if (sqResults) {
       const count = sqResults.totalShadowQueries || 0;
       chrome.action.setBadgeText({
-        text: count > 0 ? 'SQ' : '',
+        text: count > 0 ? 'FO' : '',
         tabId: tabId
       });
       chrome.action.setBadgeBackgroundColor({
@@ -74,8 +74,8 @@ class AnalysisManager {
       });
       chrome.action.setTitle({
         title: count > 0
-          ? `Shadow Queries: ${count} found`
-          : 'Shadow Query Analyzer',
+          ? `Fan-Out Queries: ${count} found`
+          : 'Query Fan-Out Analyzer',
         tabId: tabId
       });
       return;

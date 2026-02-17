@@ -484,7 +484,7 @@
   <!-- Tab Switcher -->
   <div class="tab-switcher">
     <button class="tab-btn active" data-tab="visibility">AI Visibility</button>
-    <button class="tab-btn" data-tab="shadow-queries">Shadow Q's</button>
+    <button class="tab-btn" data-tab="shadow-queries">Query Fan-Out</button>
   </div>
 
   <!-- AI Visibility Tab (existing) -->
@@ -550,13 +550,13 @@
       <!-- Default state: prompt to analyze -->
       <div id="sq-initial" class="sq-message">
         <div class="sq-icon">&#x1F50D;</div>
-        <div>Reveal the hidden search queries ChatGPT generates behind the scenes.</div>
-        <button id="sq-analyze-btn" class="sq-analyze-btn">Analyze Shadow Queries</button>
+        <div>See the exact search queries ChatGPT generates before answering — and whether your site shows up.</div>
+        <button id="sq-analyze-btn" class="sq-analyze-btn">Analyze Query Fan-Out</button>
       </div>
 
       <!-- Loading state -->
       <div id="sq-loading" class="sq-loading" style="display: none;">
-        <div>Extracting shadow queries...</div>
+        <div>Extracting fan-out queries...</div>
       </div>
 
       <!-- Results -->
@@ -564,7 +564,7 @@
         <div class="sq-stats">
           <div class="sq-stat">
             <div id="sq-total-queries" class="sq-stat-value">0</div>
-            <div class="sq-stat-label">Shadow Queries</div>
+            <div class="sq-stat-label">Fan-Out Queries</div>
           </div>
           <div class="sq-stat">
             <div id="sq-total-citations" class="sq-stat-value">0</div>
@@ -582,9 +582,9 @@
         <hr class="sq-divider">
 
         <div class="sq-cta">
-          <div class="sq-cta-text">Want to rank for these shadow queries?</div>
+          <div class="sq-cta-text">Your content may answer these queries — but can AI crawlers actually see it?</div>
           <a id="sq-cta-link" href="https://www.alliai.com/ai-search-visibility-engine" target="_blank" class="sq-cta-btn">
-            See How Alli AI Can Help →
+            Check Your AI Visibility →
           </a>
         </div>
       </div>
@@ -595,7 +595,7 @@
       <!-- Not on ChatGPT message -->
       <div id="sq-not-chatgpt" class="sq-message" style="display: none;">
         <div class="sq-icon">&#x1F4AC;</div>
-        <div>Navigate to a ChatGPT conversation with web search results, then open this extension to analyze shadow queries.</div>
+        <div>Navigate to a ChatGPT conversation that used web search, then open this extension to see its query fan-out.</div>
       </div>
     </div>
   </div>
