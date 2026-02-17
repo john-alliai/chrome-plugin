@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AI Search Visibility Checker",
   "version": "1.1.0",
-  "description": "Instantly check if your website has good AI search visibility for ChatGPT, Claude, and Perplexity",
+  "description": "Check your AI search visibility score and reveal the exact queries ChatGPT generates behind the scenes",
 
   "permissions": [
     "activeTab",
