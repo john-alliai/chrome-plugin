@@ -3,602 +3,754 @@
 <head>
   <meta charset="utf-8">
   <style>
-    body {
-      width: 420px;
-      min-height: 200px;
-      margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      line-height: 1.4;
+    /* ----------------------------------------------------------------------
+       Design tokens — "The Intelligent Interface"
+       Tonal layering, no sectioning borders, Inter type system.
+       Status colors live in two tiers: vibrant Tailwind-500 for fills,
+       darker -strong (Tailwind-700) for text-on-light contrast.
+       ---------------------------------------------------------------------- */
+    :root {
+      /* Surface tiers — separation comes from these, not from lines */
+      --surface:                    #f8f9ff;
+      --surface-container-low:      #eff4ff;
+      --surface-container-lowest:   #ffffff;
+      --surface-container-highest:  #e0e4ed;
+      --surface-bright:             #f8f9ff;
+
+      /* Text */
+      --on-surface:           #0b1c30;
+      --on-surface-variant:   #404f63;
+      --on-surface-faint:     #6b7c8e;
+
+      /* Brand — Alli AI palette derived from the favicon */
+      --primary:              #0c7ff2;  /* Alli AI blue (favicon primary) */
+      --primary-container:    #3094f5;  /* slightly lighter, for the CTA gradient */
+      --primary-strong:       #074dbb;  /* darker, for text on light */
+      --primary-fixed:        #d6e9ff;  /* glow / focus ring */
+
+      /* Status — vibrant fills + -strong for readable text */
+      --good:         #10b981;  /* emerald-500 */
+      --good-strong:  #047857;  /* emerald-700 */
+      --good-soft:    #d1fae5;  /* emerald-100 */
+      --warn:         #f59e0b;  /* amber-500 */
+      --warn-strong:  #b45309;  /* amber-700 */
+      --warn-soft:    #fef3c7;  /* amber-100 */
+      --bad:          #ef4444;  /* red-500 */
+      --bad-strong:   #b91c1c;  /* red-700 */
+      --bad-soft:     #fee2e2;  /* red-100 */
+
+      --outline-variant: #c1c6d6;
+
+      /* Radii */
+      --radius-md:   0.375rem;
+      --radius-full: 9999px;
+
+      /* Spacing (4px grid) */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-12: 3rem;
     }
 
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      width: 380px;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+                   "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      font-size: 0.875rem;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+      color: var(--on-surface);
+      background: var(--surface);
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container { padding: var(--space-4); }
+
+    /* ---------- Header — brand row on top, URL underneath ---------- */
     .header {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e0e0e0;
+      flex-direction: column;
+      gap: var(--space-1);
+      margin-bottom: var(--space-6);
     }
-
-    .logo {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-      border-radius: 6px;
+    .header-brand {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 12px;
-      flex-shrink: 0;
+      gap: var(--space-2);
     }
-
-    h1 {
+    .header-logo {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border-radius: 5px;
+    }
+    .header h1 {
       margin: 0;
-      font-size: 16px;
+      font-size: 0.9375rem;
       font-weight: 600;
-      color: #333;
+      letter-spacing: -0.005em;
+      color: var(--on-surface);
     }
-
-    /* Tab Switcher */
-    .tab-switcher {
+    .header .page-url {
       display: flex;
-      margin-bottom: 16px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      flex-direction: column;
+      gap: 2px;
       overflow: hidden;
+      font-size: 0.75rem;
     }
-
-    .tab-btn {
-      flex: 1;
-      padding: 8px 12px;
-      border: none;
-      background: #f8f9fa;
-      font-size: 12px;
+    .header .page-url-label {
+      color: var(--on-surface-variant);
       font-weight: 600;
-      color: #666;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
     }
-
-    .tab-btn:first-child {
-      border-right: 1px solid #e0e0e0;
-    }
-
-    .tab-btn.active {
-      background: #397dea;
-      color: white;
-    }
-
-    .tab-btn:hover:not(.active) {
-      background: #eef1f5;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Existing visibility styles */
-    .score-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .score {
-      font-size: 48px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    .score.good { color: #00AA00; }
-    .score.warning { color: #FFA500; }
-    .score.poor { color: #FF0000; }
-
-    .score-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #666;
-      margin-bottom: 4px;
-    }
-
-    .score-description {
-      font-size: 13px;
-      color: #666;
-    }
-
-    .issues-section {
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #333;
-      font-size: 13px;
-    }
-
-    .issue {
-      background: #f8f9fa;
-      border-left: 3px solid #ddd;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      border-radius: 0 4px 4px 0;
-      font-size: 12px;
-    }
-
-    .issue.high { border-left-color: #FF0000; }
-    .issue.medium { border-left-color: #FFA500; }
-    .issue.low { border-left-color: #FFD700; }
-
-    .issue-message {
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-
-    .issue-impact {
-      color: #666;
-      font-size: 11px;
-    }
-
-    .recommendations {
-      margin-top: 16px;
-    }
-
-    .recommendation {
-      background: #e8f5e8;
-      border-left: 3px solid #00AA00;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      border-radius: 0 4px 4px 0;
-      font-size: 12px;
-    }
-
-    .rec-action {
-      font-weight: 500;
-      margin-bottom: 2px;
-      color: #006600;
-    }
-
-    .rec-description {
-      color: #333;
-      margin-bottom: 4px;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 40px 0;
-      color: #666;
-    }
-
-    .primary-cta-btn {
-      background: #397dea;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 16px;
-      width: 100%;
-      transition: all 0.3s;
-    }
-
-    .primary-cta-btn:hover {
-      background: #2968d7;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(57, 125, 234, 0.3);
-    }
-
-    /* Shadow Query Styles */
-    .sq-loading {
-      text-align: center;
-      padding: 30px 0;
-      color: #666;
-    }
-
-    .sq-message {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .sq-message .sq-icon {
-      font-size: 32px;
-      margin-bottom: 8px;
-    }
-
-    .sq-analyze-btn {
-      background: #00AA00;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      width: 100%;
-      margin-top: 12px;
-      transition: all 0.3s;
-    }
-
-    .sq-analyze-btn:hover {
-      background: #009900;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 170, 0, 0.3);
-    }
-
-    .sq-analyze-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .sq-prompt-group {
-      margin-bottom: 16px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .sq-prompt-header {
-      background: #f0f4ff;
-      padding: 10px 12px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .sq-prompt-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #666;
-      margin-bottom: 2px;
-    }
-
-    .sq-prompt-text {
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .sq-queries-list {
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-
-    .sq-query-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 12px;
-    }
-
-    .sq-query-item:last-child {
-      border-bottom: none;
-    }
-
-    .sq-query-text {
-      flex: 1;
-      color: #333;
-      padding-right: 8px;
-    }
-
-    .sq-query-badge {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 10px;
-      margin-right: 8px;
-      flex-shrink: 0;
-    }
-
-    .sq-query-badge.hidden {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .sq-query-badge.visible {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .sq-copy-btn {
-      background: none;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 3px 8px;
-      font-size: 10px;
-      color: #666;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.2s;
-    }
-
-    .sq-copy-btn:hover {
-      background: #f0f0f0;
-      border-color: #999;
-    }
-
-    .sq-copy-btn.copied {
-      background: #d4edda;
-      border-color: #00AA00;
-      color: #155724;
-    }
-
-    .sq-citations {
-      padding: 8px 12px;
-      background: #fafafa;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .sq-citations-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 4px;
-    }
-
-    .sq-citation-item {
-      font-size: 11px;
-      color: #397dea;
-      margin-bottom: 2px;
+    .header .page-url-path {
+      font-family: ui-monospace, SFMono-Regular, Menlo, "Segoe UI Mono", Consolas, monospace;
+      font-size: 0.6875rem;
+      color: var(--on-surface-faint);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      min-width: 0;
     }
 
-    .sq-citation-item a {
-      color: #397dea;
-      text-decoration: none;
-    }
-
-    .sq-citation-item a:hover {
-      text-decoration: underline;
-    }
-
-    .sq-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .sq-action-btn {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #fff;
-      font-size: 12px;
-      font-weight: 500;
-      color: #333;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .sq-action-btn:hover {
-      background: #f8f9fa;
-      border-color: #999;
-    }
-
-    .sq-action-btn.copied {
-      background: #d4edda;
-      border-color: #00AA00;
-      color: #155724;
-    }
-
-    .sq-divider {
-      border: none;
-      border-top: 1px solid #e0e0e0;
-      margin: 16px 0;
-    }
-
-    .sq-cta {
-      text-align: center;
-      padding: 12px;
-      background: linear-gradient(135deg, #f0f4ff, #e8f5e8);
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-
-    .sq-cta-text {
-      font-size: 12px;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .sq-cta-btn {
-      display: inline-block;
-      background: #397dea;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
+    /* ---------- Section title ---------- */
+    .section-title {
+      font-size: 0.6875rem;
       font-weight: 600;
-      text-decoration: none;
-      transition: all 0.3s;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--on-surface-faint);
+      margin: 0 0 var(--space-3) 0;
     }
 
-    .sq-cta-btn:hover {
-      background: #2968d7;
-      transform: translateY(-1px);
+    /* ---------- Tooltip system ----------
+       A single global tooltip element, positioned by JavaScript so it knows
+       the popup's actual bounds and clamps to stay inside them. Far more
+       reliable than per-trigger pseudo-elements which can overflow when the
+       trigger is near an edge. */
+    .global-tooltip {
+      position: fixed;
+      z-index: 100;
+      display: none;
+      pointer-events: none;
+      background: var(--on-surface);
+      color: #ffffff;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: 0.6875rem;
+      font-weight: 400;
+      line-height: 1.45;
+      letter-spacing: 0;
+      text-transform: none;
+      width: max-content;
+      max-width: 280px;
+      box-shadow: 0 8px 24px rgba(11, 28, 48, 0.18);
+      animation: tooltipFade 0.12s ease-out;
+    }
+    @keyframes tooltipFade {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
 
-    .sq-stats {
+    /* ---------- Loading ---------- */
+    .loading {
+      padding: var(--space-12) 0;
+      text-align: center;
+    }
+    .loading-title {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: var(--space-3);
+    }
+    .loading-dots span {
+      width: 6px; height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      opacity: 0.3;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 60%, 100% { opacity: 0.3; }
+      30% { opacity: 1; }
+    }
+    .loading-detail {
+      margin-top: var(--space-3);
+      font-size: 0.6875rem;
+      font-weight: 400;
+      color: var(--on-surface-faint);
+    }
+
+    /* ---------- Score block (the verdict) ---------- */
+    .score-block {
+      text-align: center;
+      margin-bottom: var(--space-8);
+      padding-top: var(--space-2);
+    }
+    .score-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--on-surface-faint);
+      margin-bottom: var(--space-3);
+    }
+    /* Score number — color-mix halo gives the headline a soft, status-colored
+       glow that scales with whatever color the number happens to be. */
+    .score-number {
+      font-size: 3rem;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--on-surface);
+      text-shadow: 0 8px 28px color-mix(in srgb, currentColor 22%, transparent);
+    }
+    .score-number.good { color: var(--good-strong); }
+    .score-number.warn { color: var(--warn-strong); }
+    .score-number.bad  { color: var(--bad-strong); }
+    /* Invisible — strongest visual escalation: deeper red, stronger glow */
+    .score-number.invisible {
+      color: var(--bad-strong);
+      text-shadow: 0 10px 36px color-mix(in srgb, currentColor 32%, transparent);
+    }
+
+    /* Status-aware description line — replaces both the old "Excellent AI
+       search presence" prose AND the visibility callout's description.
+       Renders once, only when there's something actionable to convey. */
+    .score-status {
+      margin-top: var(--space-3);
+      max-width: 280px;
+      margin-left: auto;
+      margin-right: auto;
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+      line-height: 1.45;
+    }
+    .score-status.bad,
+    .score-status.invisible { color: var(--bad-strong); }
+
+    .signals {
       display: flex;
       justify-content: center;
-      gap: 20px;
-      margin-bottom: 12px;
-      padding: 8px 0;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .signal-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: 4px 10px;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--on-surface-variant);
+    }
+    .signal-pill strong {
+      color: var(--on-surface);
+      font-weight: 600;
     }
 
-    .sq-stat {
-      text-align: center;
-    }
-
-    .sq-stat-value {
-      font-size: 20px;
+    /* Segment chip — vibrant tinted background, deep readable text, soft
+       colored drop-shadow for SaaS-y dimension. */
+    .segment-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin-top: var(--space-3);
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.6875rem;
       font-weight: 700;
-      color: #397dea;
-    }
-
-    .sq-stat-label {
-      font-size: 10px;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #666;
+    }
+    .segment-chip::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: var(--radius-full);
+    }
+    .segment-chip.good {
+      background: var(--good-soft);
+      color: var(--good-strong);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--good) 22%, transparent);
+    }
+    .segment-chip.good::before { background: var(--good); }
+    .segment-chip.warn {
+      background: var(--warn-soft);
+      color: var(--warn-strong);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--warn) 22%, transparent);
+    }
+    .segment-chip.warn::before { background: var(--warn); }
+    .segment-chip.bad {
+      background: var(--bad-soft);
+      color: var(--bad-strong);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--bad) 22%, transparent);
+    }
+    .segment-chip.bad::before { background: var(--bad); }
+    /* Invisible — solid red bg + white text, hardest visual escalation */
+    .segment-chip.invisible {
+      background: var(--bad);
+      color: #ffffff;
+      box-shadow: 0 4px 18px color-mix(in srgb, var(--bad) 50%, transparent);
+    }
+    .segment-chip.invisible::before { background: #ffffff; }
+
+    /* (The standalone visibility-callout block was removed: visibility % is
+       now the score hero, eliminating the duplicate display of the same
+       value as both score and visibility.) */
+
+    /* ---------- Post-hydration notice ---------- */
+    .post-hydration-notice {
+      background: var(--warn-soft);
+      border-left: 3px solid var(--warn);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-6);
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+      color: var(--warn-strong);
+      line-height: 1.5;
     }
 
-    .sq-error {
+    /* ---------- Issues + Recs (most actionable, near top) ----------
+       Single-line cards: dot + message. Detailed impact / description text
+       lives in a hover tooltip via data-tooltip. */
+    .issues, .recs { margin-bottom: var(--space-6); }
+
+    .issue, .rec {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--surface-container-lowest);
+      padding: var(--space-2) var(--space-3);
+      margin-bottom: 4px;
+      border-radius: var(--radius-md);
+      font-size: 0.8125rem;
+      cursor: help;
+    }
+    .issue:last-child, .rec:last-child { margin-bottom: 0; }
+
+    .issue::before, .rec::before {
+      content: '';
+      flex-shrink: 0;
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+    }
+    .issue.high::before   { background: var(--bad); }
+    .issue.medium::before { background: var(--warn); }
+    .issue.low::before    { background: var(--on-surface-faint); }
+    .rec::before          { background: var(--primary); }
+
+    .issue-message, .rec-action {
+      color: var(--on-surface);
+      font-weight: 500;
+      line-height: 1.4;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ---------- Breakdown (supporting evidence) ---------- */
+    .breakdown { margin-bottom: var(--space-6); }
+    .breakdown-row {
+      display: grid;
+      grid-template-columns: 124px 1fr 32px;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      font-size: 0.8125rem;
+    }
+    .breakdown-row:last-child { margin-bottom: 0; }
+    .breakdown-label { color: var(--on-surface-variant); }
+    .breakdown-bar {
+      height: 6px;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .breakdown-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.4s ease-out;
+    }
+    .breakdown-fill.good    { background: var(--good); }
+    .breakdown-fill.warn    { background: var(--warn); }
+    .breakdown-fill.bad     { background: var(--bad); }
+    .breakdown-fill.unknown { background: var(--surface-container-highest); }
+    .breakdown-value {
+      text-align: right;
+      color: var(--on-surface);
+      font-weight: 600;
+      font-size: 0.8125rem;
+    }
+
+    /* ---------- Crawlers card ---------- */
+    .crawlers {
+      margin-bottom: var(--space-6);
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .crawlers-body { padding: var(--space-4); }
+    .crawler-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2) var(--space-4);
+    }
+    .crawler-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 0.75rem;
+      min-width: 0;
+    }
+    .crawler-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .crawler-dot.allowed { background: var(--good); }
+    .crawler-dot.partial { background: var(--warn); }
+    .crawler-dot.blocked { background: var(--bad); }
+    .crawler-dot.unknown { background: var(--on-surface-faint); }
+    .crawler-name {
+      color: var(--on-surface);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .crawler-vendor {
+      color: var(--on-surface-faint);
+      font-size: 0.6875rem;
+      flex-shrink: 0;
+    }
+    .crawler-files {
+      background: var(--surface-container-low);
+      padding: var(--space-2) var(--space-4);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--on-surface-variant);
       text-align: center;
-      padding: 20px;
-      color: #856404;
-      background: #fff3cd;
-      border-radius: 8px;
-      font-size: 13px;
+    }
+    .crawler-files .file-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      margin: 0 var(--space-2);
+    }
+    .crawler-files .file-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: var(--radius-full);
+    }
+    .crawler-files .file-dot.present { background: var(--good); }
+    .crawler-files .file-dot.absent  { background: var(--on-surface-faint); }
+
+    /* ---------- Bot probes (V2) ---------- */
+    .bot-probes {
+      margin-bottom: var(--space-6);
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .bot-probes-body { padding: var(--space-4); }
+    .bot-probe-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: 0.75rem;
+      padding: var(--space-1) 0;
+    }
+    .bot-probe-row + .bot-probe-row { margin-top: var(--space-1); }
+    .bot-probe-dot {
+      width: 8px; height: 8px;
+      border-radius: var(--radius-full);
+    }
+    .bot-probe-dot.good    { background: var(--good); }
+    .bot-probe-dot.warn    { background: var(--warn); }
+    .bot-probe-dot.bad     { background: var(--bad); }
+    .bot-probe-dot.unknown { background: var(--on-surface-faint); }
+    .bot-probe-name {
+      color: var(--on-surface);
+      font-weight: 500;
+    }
+    .bot-probe-vendor {
+      color: var(--on-surface-faint);
+      font-size: 0.6875rem;
+      margin-left: var(--space-1);
+    }
+    .bot-probe-verdict {
+      color: var(--on-surface-variant);
+      font-size: 0.6875rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+    /* Canonical-baseline banner — celebratory, gradient with colored shadow */
+    .bot-probes-baseline {
+      background: linear-gradient(135deg, var(--good-soft) 0%,
+                  color-mix(in srgb, var(--good) 22%, white) 100%);
+      color: var(--good-strong);
+      padding: var(--space-2) var(--space-4);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-align: center;
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--good) 14%, transparent);
+    }
+
+    /* (ROI strip removed — the dollar estimates were too rough to be
+       useful, and the CTA now sells the upgrade on its own.) */
+
+    /* ---------- CTA ---------- */
+    .cta {
+      display: block;
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+      color: #ffffff;
+      border: none;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 28%, transparent);
+      transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+    }
+    .cta:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 4px var(--primary-fixed),
+                  0 10px 28px color-mix(in srgb, var(--primary) 36%, transparent);
+    }
+    .cta:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px var(--primary-fixed),
+                  0 6px 20px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+    .cta:active { transform: scale(1.0); }
+
+    /* ---------- Secondary action — download the one-page PDF report ---------- */
+    .cta-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      width: 100%;
+      margin-bottom: var(--space-3);
+      background: var(--surface-container-lowest);
+      color: var(--primary-strong);
+      border: 1px solid var(--outline-variant);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: background 0.15s ease-out, border-color 0.15s ease-out;
+    }
+    .cta-secondary:hover {
+      background: var(--surface-container-low);
+      border-color: var(--primary);
+    }
+    .cta-secondary:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px var(--primary-fixed);
+    }
+    .cta-secondary svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* ---------- Settings — single discreet row above CTA ---------- */
+    .settings {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+      padding: var(--space-2) var(--space-3);
+      background: var(--surface-container-low);
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+    }
+    .settings .settings-label {
+      color: var(--on-surface);
+      font-weight: 500;
+    }
+    .settings .settings-help {
+      color: var(--on-surface-faint);
+      font-size: 0.6875rem;
+      margin-left: auto;
+    }
+    .toggle {
+      position: relative;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--surface-container-highest);
+      border-radius: var(--radius-full);
+      transition: background 0.15s;
+    }
+    .toggle-thumb {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      background: white;
+      border-radius: var(--radius-full);
+      transition: transform 0.15s, background 0.15s;
+      box-shadow: 0 1px 2px rgba(11, 28, 48, 0.15);
+    }
+    .toggle input:checked ~ .toggle-track { background: var(--primary); }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(14px); }
+    .toggle input:focus-visible ~ .toggle-track {
+      box-shadow: 0 0 0 4px var(--primary-fixed);
+    }
+
+    /* ---------- Error state ---------- */
+    .error-state {
+      padding: var(--space-8) var(--space-4);
+      text-align: center;
+    }
+    .error-state-title {
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+    .error-state-detail {
+      font-size: 0.75rem;
+      color: var(--on-surface-faint);
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">AI</div>
-    <h1>AI Search Visibility Checker</h1>
-  </div>
-
-  <!-- Tab Switcher -->
-  <div class="tab-switcher">
-    <button class="tab-btn active" data-tab="visibility">AI Visibility</button>
-    <button class="tab-btn" data-tab="shadow-queries">Query Fan-Out</button>
-  </div>
-
-  <!-- AI Visibility Tab (existing) -->
-  <div id="tab-visibility" class="tab-content active">
-    <div id="loading" class="loading">
-      <div>Analyzing page...</div>
+  <div class="container">
+    <div class="header">
+      <div class="header-brand">
+        <img src="icons/icon.svg" alt="Alli AI" class="header-logo">
+        <h1>AI Search Visibility</h1>
+      </div>
+      <div id="page-url" class="page-url">
+        <span class="page-url-label">Result is for only this page</span>
+        <span id="page-url-path" class="page-url-path"></span>
+      </div>
     </div>
 
-    <div id="results" style="display: none;">
-      <div class="score-container">
-        <div class="score-label">AI Search Score</div>
-        <div id="score" class="score">--</div>
-        <div id="score-description" class="score-description"></div>
+    <div id="loading" class="loading">
+      <div class="loading-title">Analyzing</div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div class="loading-detail">Fetching server HTML and robots.txt. Probing as GPTBot, ClaudeBot, PerplexityBot.</div>
+    </div>
+
+    <div id="results" style="display:none;">
+      <div id="post-hydration-notice"></div>
+
+      <!-- 1. The verdict — visibility % is the headline metric (was the
+           "AI Search Score" + duplicate visibility callout). One number,
+           one label, one description. -->
+      <div class="score-block">
+        <div class="score-label">Content Visible to AI</div>
+        <div id="score" class="score-number">—</div>
+        <div id="segment-chip" class="segment-chip" style="display:none;"></div>
+        <div id="score-description" class="score-status"></div>
+        <div id="signals" class="signals" style="display:none;"></div>
       </div>
 
-      <div id="roi-section" class="roi-section" style="margin-bottom: 20px;">
-        <div class="industry-detection" style="text-align: center; margin-bottom: 12px;">
-          <span style="font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Detected Industry: </span>
-          <span id="detected-industry" style="font-size: 12px; font-weight: 600; color: #397dea;"></span>
-        </div>
-
-        <div class="roi-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div class="roi-card monthly" style="background: #fef2f2; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #ef4444;">
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #991b1b; margin-bottom: 4px;">Monthly Loss</div>
-            <div id="monthly-loss" style="font-size: 18px; font-weight: 700; color: #dc2626;">$0</div>
-            <div style="font-size: 9px; color: #7f1d1d;">from poor AI search visibility</div>
-          </div>
-
-          <div class="roi-card annual" style="background: #f0f9ff; border-radius: 8px; padding: 12px; text-align: center; border-left: 3px solid #0ea5e9;">
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #0c4a6e; margin-bottom: 4px;">Annual Loss</div>
-            <div id="annual-loss" style="font-size: 18px; font-weight: 700; color: #0284c7;">$0</div>
-            <div style="font-size: 9px; color: #0c4a6e;">potential impact</div>
-          </div>
-        </div>
-
-        <div class="roi-disclaimer" style="text-align: center; margin-bottom: 8px;">
-          <div style="font-size: 10px; color: #666; margin-bottom: 8px;">*Estimated based on industry averages</div>
-        </div>
-      </div>
-
-      <div id="issues-section" class="issues-section" style="display: none;">
+      <!-- 2. What's wrong (most actionable) -->
+      <div id="issues-section" class="issues" style="display:none;">
         <div class="section-title">Issues Found</div>
         <div id="issues-list"></div>
       </div>
 
-      <div id="recommendations-section" class="recommendations" style="display: none;">
+      <!-- 3. What to do (most actionable) -->
+      <div id="recommendations-section" class="recs" style="display:none;">
         <div class="section-title">Recommendations</div>
         <div id="recommendations-list"></div>
       </div>
 
-      <!-- Primary CTA Button -->
-      <a href="https://www.alliai.com/ai-search-impact-calculator" target="_blank" style="text-decoration: none;">
-        <button id="primary-cta-btn" class="primary-cta-btn">
-          Get Precise ROI Calculation →
-        </button>
-      </a>
+      <!-- 4. Why this score (supporting evidence) -->
+      <div id="breakdown-section" class="breakdown" style="display:none;">
+        <div class="section-title">Score Breakdown</div>
+        <div id="breakdown-list"></div>
+      </div>
+
+      <!-- 5. What crawlers see (reference) -->
+      <div id="crawlers-section" class="crawlers" style="display:none;">
+        <div class="crawlers-body">
+          <div class="section-title">AI Crawler Access</div>
+          <div id="crawler-grid" class="crawler-grid"></div>
+        </div>
+        <div id="ai-files-row" class="crawler-files"></div>
+      </div>
+
+      <div id="bot-probes-section" class="bot-probes" style="display:none;">
+        <div class="bot-probes-body">
+          <div class="section-title">Bot Probe Results</div>
+          <div id="bot-probes-list"></div>
+        </div>
+        <div id="bot-probes-baseline" class="bot-probes-baseline" style="display:none;"></div>
+      </div>
+
+      <!-- 6. Download report -->
+      <button id="download-report-btn" class="cta-secondary" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Download report (PDF)
+      </button>
+
+      <!-- 7. CTA -->
+      <button id="primary-cta-btn" class="cta" type="button">Scan your whole site for free :)</button>
+
+      <!-- 7. Settings — discreet, default-on, rarely touched -->
+      <div class="settings">
+        <label class="toggle" for="probe-toggle">
+          <input type="checkbox" id="probe-toggle" />
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+        <span class="settings-label">Probe as AI crawlers</span>
+        <span class="settings-help">adds ~6s</span>
+      </div>
     </div>
   </div>
 
-  <!-- Shadow Queries Tab (new) -->
-  <div id="tab-shadow-queries" class="tab-content">
-    <div id="sq-content">
-      <!-- Default state: prompt to analyze -->
-      <div id="sq-initial" class="sq-message">
-        <div class="sq-icon">&#x1F50D;</div>
-        <div>See the exact search queries ChatGPT generates before answering — and whether your site shows up.</div>
-        <button id="sq-analyze-btn" class="sq-analyze-btn">Analyze Query Fan-Out</button>
-      </div>
-
-      <!-- Loading state -->
-      <div id="sq-loading" class="sq-loading" style="display: none;">
-        <div>Extracting fan-out queries...</div>
-      </div>
-
-      <!-- Results -->
-      <div id="sq-results" style="display: none;">
-        <div class="sq-stats">
-          <div class="sq-stat">
-            <div id="sq-total-queries" class="sq-stat-value">0</div>
-            <div class="sq-stat-label">Fan-Out Queries</div>
-          </div>
-          <div class="sq-stat">
-            <div id="sq-total-citations" class="sq-stat-value">0</div>
-            <div class="sq-stat-label">Sources Cited</div>
-          </div>
-        </div>
-
-        <div id="sq-results-list"></div>
-
-        <div class="sq-actions">
-          <button id="sq-copy-all-btn" class="sq-action-btn">Copy All Queries</button>
-          <button id="sq-export-csv-btn" class="sq-action-btn">Export CSV</button>
-        </div>
-
-        <hr class="sq-divider">
-
-        <div class="sq-cta">
-          <div class="sq-cta-text">Your content may answer these queries — but can AI crawlers actually see it?</div>
-          <a id="sq-cta-link" href="https://www.alliai.com/ai-search-visibility-engine" target="_blank" class="sq-cta-btn">
-            Check Your AI Visibility →
-          </a>
-        </div>
-      </div>
-
-      <!-- Error state -->
-      <div id="sq-error" class="sq-error" style="display: none;"></div>
-
-      <!-- Not on ChatGPT message -->
-      <div id="sq-not-chatgpt" class="sq-message" style="display: none;">
-        <div class="sq-icon">&#x1F4AC;</div>
-        <div>Navigate to a ChatGPT conversation that used web search, then open this extension to see its query fan-out.</div>
-      </div>
-    </div>
-  </div>
+  <!-- Single global tooltip. JS positions it on hover/focus of any
+       [data-tooltip] element and clamps it inside the popup. -->
+  <div id="global-tooltip" class="global-tooltip" role="tooltip"></div>
 
   <script src="popup.js"></script>
 </body>

@@ -36,6 +36,8 @@ The extension uses static DOM analysis to detect patterns that indicate poor AI 
 
 - `activeTab`: To analyze the current page's content for AI search visibility
 - `scripting`: To inject analysis code into pages
+- `tabs`: To detect tab navigation and clear stale badges
+- `storage`: To cache analysis results across service worker restarts
 
 ## Technical Architecture
 
